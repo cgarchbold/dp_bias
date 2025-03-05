@@ -8,7 +8,7 @@ from PIL import Image
 class FairFaceDataset(Dataset):
     """FairFace dataset."""
 
-    def __init__(self, root_dir, train=True, transform=None):
+    def __init__(self, root_dir, train=True, transform=None, biased=False, seed=42):
         """
         Arguments:
             csv_file (string): Path to the csv file with annotations.
@@ -19,6 +19,8 @@ class FairFaceDataset(Dataset):
         
         self.root_dir = root_dir
         self.transform = transform
+        np.random.seed(seed) 
+
         if train:
             csv_file = os.path.join(root_dir, 'fairface_label_train.csv')
             self.anno = pd.read_csv(csv_file)
@@ -34,6 +36,32 @@ class FairFaceDataset(Dataset):
         self.anno["age"] = self.anno["age"].map(self.enc_age)
         self.anno["gender"] = self.anno["gender"].map(self.enc_gender)
         self.anno["race"] = self.anno["race"].map(self.enc_race)
+
+        # Apply bias if needed
+        if biased:
+            self.apply_bias()
+
+    def apply_bias(self):
+        """Randomly removes half of all women and half of each specified race (Black, Indian, Middle Eastern)."""
+        
+        # Remove half of women
+        women_indices = self.anno[self.anno["gender"] == 1].index
+        women_to_remove = np.random.choice(women_indices, size=len(women_indices) // 2, replace=False)
+
+        # Remove half of each specified race individually
+        races_to_remove = [2, 4, 6]  # Indian, Black, Middle Eastern
+        race_removals = []
+        
+        for race in races_to_remove:
+            race_indices = self.anno[self.anno["race"] == race].index
+            race_to_remove = np.random.choice(race_indices, size=len(race_indices) // 2, replace=False)
+            race_removals.extend(race_to_remove)
+
+        # Combine indices to remove
+        to_remove = np.concatenate([women_to_remove, race_removals])
+        
+        # Drop selected rows
+        self.anno = self.anno.drop(to_remove).reset_index(drop=True)
 
     def __len__(self):
         return len(self.anno)

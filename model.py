@@ -5,7 +5,7 @@ from torchvision.models import resnet18
 
 # Define model
 class MultiTaskResNet(nn.Module):
-    def __init__(self, num_age_classes=9, num_gender_classes=2, num_race_classes=7, pretrained = False):
+    def __init__(self, num_age_classes=9, num_gender_classes=2, num_race_classes=7, pretrained = False, freeze_backbone=False):
         super(MultiTaskResNet, self).__init__()
 
         if pretrained:
@@ -15,6 +15,11 @@ class MultiTaskResNet(nn.Module):
 
         self.backbone.fc = nn.Identity()  # Remove original classification head
         feature_dim = 512  # ResNet18 feature output size
+
+        # Freeze the entire backbone
+        if freeze_backbone:
+            for param in self.backbone.parameters():
+                param.requires_grad = False
 
         # Three classification heads
         self.age_head = nn.Linear(feature_dim, num_age_classes)
