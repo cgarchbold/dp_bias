@@ -28,7 +28,7 @@ def train(args):
         ModuleValidator.validate(model, strict=False)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = optim.AdamW(model.parameters(), lr=args.lr)
 
     if args.private:
         privacy_engine = PrivacyEngine()
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     parser.add_argument("--epsilon", type=float, default=10, help="Privacy budget (epsilon)")
     parser.add_argument("--delta", type=float, default=0.0001, help="Privacy parameter (delta)")
     parser.add_argument("--pretrained", action='store_true', help="Enable imagenet weights")
-    parser.add_argument("--freeze_backbone", action='store_true', help="Enable freezeing backbone weights")
+    parser.add_argument("--freeze_backbone", action='store_true', help="Enable freezing backbone weights")
     parser.add_argument("--apply_bias", action='store_true', help="Enables biased subset")
 
     args = parser.parse_args()
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     # Create directory for experiment
     os.makedirs(os.path.join("runs", args.exp_name), exist_ok=True)
 
-     # Save the args as a CSV file using pandas
+    # Save the args as a CSV file using pandas
     args_df = pd.DataFrame(vars(args), index=[0])
     save_path = os.path.join("runs", args.exp_name, "experiment_args.csv")
     args_df.to_csv(save_path, index=False)

@@ -8,7 +8,10 @@ def get_dataloaders(batch_size, apply_bias = False, val_split=0.2, random_seed=4
 
     # Define transformations
     transform = transforms.Compose([
-        #transforms.Resize((224, 224)),
+        transforms.Resize((224, 224)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(10),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
